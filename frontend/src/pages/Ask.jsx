@@ -241,6 +241,17 @@ function Answer({ data }) {
                 <Badge tone="neutral"><Globe size={13} /> {data.language.toUpperCase()}</Badge>
               )}
               {data.translated === false && <Badge tone="warn">Not translated</Badge>}
+              {data.generation === 'mock' && (
+                <Badge tone="warn">
+                  Canned prose — no API key
+                  <Explain>
+                    The retrieved sections, citations and compliance screening below are
+                    real. Only the wording of the answer is a deterministic stand-in,
+                    because no ANTHROPIC_API_KEY is configured. Set one to get a
+                    generated answer.
+                  </Explain>
+                </Badge>
+              )}
             </div>
           </div>
           <Confidence value={data.confidence} abstained={data.abstained} />
@@ -272,6 +283,15 @@ function Answer({ data }) {
           <div className="cite-list">
             {data.citations.map((ct, i) => {
               const src = data.sources?.find(s => s.act_name === ct.act_name && s.section === ct.section);
+              // Whether the Act's text is in the corpus is decided by the
+              // graph's own coverage check, not by whether we happen to hold
+              // a public URL for it. Most ingested Acts have no source_url
+              // (the official sites are not reliably linkable), so keying
+              // "not ingested" off the URL libelled 13 of the 17 documents
+              // that are, in fact, fully ingested.
+              const uncitable = (data.compliance?.uncitable_acts || []).some(
+                u => (typeof u === 'string' ? u : u?.act_name) === ct.act_name,
+              );
               const Wrapper = ct.source_url ? 'a' : 'div';
               return (
                 <Wrapper
@@ -285,7 +305,9 @@ function Answer({ data }) {
                     <span className="cite-sec">
                       {ct.section}
                       {src && <> · match {(src.similarity_score * 100).toFixed(0)}%</>}
-                      {!ct.source_url && <> · <span title="This Act is cited by the graph but its text is not yet ingested">source not yet ingested</span></>}
+                      {uncitable
+                        ? <> · <span title="This Act is named by the compliance graph but its text is not in the corpus, so the wording above cannot be checked against it">text not in corpus</span></>
+                        : !ct.source_url && <> · <span title="This section was retrieved from the ingested text; we just hold no public URL to link out to">no public link</span></>}
                     </span>
                   </span>
                 </Wrapper>
