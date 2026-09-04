@@ -54,7 +54,7 @@ export default function App() {
                 <strong>Sample data.</strong> The API isn’t reachable, so this is illustrative
                 content showing the shape of a real answer — not retrieved law, and not legal advice.
                 {' '}Start the backend with <code>./scripts/run.sh</code> in the{' '}
-                <code>IP_Shakti_Sahayak--SIH</code> checkout, then reload. Opening{' '}
+                <code>IP_Shakti_Sahayak--SIH--AI</code> checkout, then reload. Opening{' '}
                 <code>index.html</code> from your file manager always lands here: a{' '}
                 <code>file://</code> page has no server to call.
               </span>

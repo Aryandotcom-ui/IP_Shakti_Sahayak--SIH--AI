@@ -247,7 +247,7 @@ function Answer({ data }) {
                   <Explain>
                     The retrieved sections, citations and compliance screening below are
                     real. Only the wording of the answer is a deterministic stand-in,
-                    because no GROQ_API_KEY is configured. Set one to get a
+                    because no ANTHROPIC_API_KEY is configured. Set one to get a
                     generated answer.
                   </Explain>
                 </Badge>

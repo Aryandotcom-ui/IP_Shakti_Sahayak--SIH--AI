@@ -55,10 +55,7 @@ class Settings(BaseSettings):
     # RAG core's own SQLite stores above.
     patent_cases_db_path: str = str(REPO_ROOT / "data" / "patent_cases.sqlite3")
 
-    llm_model: str = "openai/gpt-oss-120b"
-    groq_api_key: str | None = None
-
-    # Kept for future Claude support.
+    llm_model: str = "claude-sonnet-4-5"
     anthropic_api_key: str | None = None
 
     # Multilingual request/response edge (ai/translation.py). Without both
