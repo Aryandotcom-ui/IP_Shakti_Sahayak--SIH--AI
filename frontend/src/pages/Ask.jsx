@@ -203,9 +203,14 @@ function FactRow({ label, hint, options, value, onPick }) {
 function Thinking() {
   const steps = ['Detecting language', 'Retrieving matching law', 'Screening obligations', 'Composing the answer'];
   const [i, setI] = useState(0);
+  // A normal answer takes a few seconds. Past ten, the likeliest cause is a
+  // free-tier server waking from sleep, which takes up to a minute — say so,
+  // rather than leaving a spinner that looks like a hang.
+  const [slow, setSlow] = useState(false);
   useEffect(() => {
     const t = setInterval(() => setI(n => Math.min(n + 1, steps.length - 1)), 620);
-    return () => clearInterval(t);
+    const s = setTimeout(() => setSlow(true), 10000);
+    return () => { clearInterval(t); clearTimeout(s); };
   }, []);
   return (
     <div className="card fade" style={{ marginTop: 26 }}>
@@ -213,6 +218,12 @@ function Thinking() {
         <span className="pulse" />
         <span style={{ fontSize: 15, fontWeight: 500 }}>{steps[i]}…</span>
       </div>
+      {slow && (
+        <p className="faint" style={{ margin: '0 24px 4px', fontSize: 13.4 }}>
+          Taking longer than usual — a free-tier server sleeps when idle and can
+          take up to a minute to wake. It stays fast once it is up.
+        </p>
+      )}
       <div style={{ padding: '0 24px 24px', display: 'grid', gap: 10 }}>
         <div className="skeleton" style={{ height: 13, width: '92%' }} />
         <div className="skeleton" style={{ height: 13, width: '86%' }} />

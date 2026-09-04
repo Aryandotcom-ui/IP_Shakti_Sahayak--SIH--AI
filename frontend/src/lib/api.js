@@ -14,7 +14,11 @@ import {
 } from './demo.js';
 
 const BASE = import.meta.env.VITE_API_BASE ?? '/api/v1';
-const TIMEOUT_MS = 12000;
+// Free hosting tiers sleep an idle service and take up to a minute to wake
+// it. At 12s the first request after a quiet spell aborted and the UI fell
+// back to sample data, which reads as "this is broken" rather than "the
+// server is starting". Overridable for a deployment that is always warm.
+const TIMEOUT_MS = Number(import.meta.env.VITE_API_TIMEOUT_MS) || 60000;
 
 /** Fetch with a timeout — a hung backend must not hang the UI forever. */
 async function req(path, { method = 'GET', body, signal } = {}) {

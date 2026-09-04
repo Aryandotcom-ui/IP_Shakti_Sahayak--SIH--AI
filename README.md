@@ -50,6 +50,45 @@ confidence, deadlines and compliance screening are real either way; only the
 sentence phrasing is affected. Passing canned text off as a generated answer
 is the failure this project exists to prevent, so the label is not optional.
 
+## Deploying it
+
+The two halves deploy to different places, because they are different kinds
+of thing. The UI is static files. The API is a long-running Python process
+that memory-maps a ~200MB vector index — it cannot run as a serverless
+function: Netlify Functions run JS/TS and Go rather than Python, and cap at
+250MB unzipped, which the dependencies alone exceed.
+
+**API — Render (free tier).** `render.yaml` is a blueprint: in the Render
+dashboard choose New -> Blueprint and point it at this repository. It
+installs the dependencies, builds the index from `data/pdfs` during the
+build, and serves with uvicorn. Set two variables it deliberately does not
+commit:
+
+| Variable | Value |
+|---|---|
+| `CORS_ORIGINS` | your Netlify origin, no trailing slash, e.g. `https://your-site.netlify.app` |
+| `GROQ_API_KEY` | optional; without it the prose is a labelled stand-in |
+
+**UI — Netlify.** `netlify.toml` sets the build, the publish directory and
+the single-page-app rewrite that makes `/ask` survive a reload. Set one
+build variable, or every page will show the sample-data banner:
+
+| Variable | Value |
+|---|---|
+| `VITE_API_BASE` | `https://<your-render-service>.onrender.com/api/v1` |
+
+Deploy the API first: you need its URL for `VITE_API_BASE`, and it needs
+the Netlify origin for `CORS_ORIGINS`, so the second deploy of each side is
+the one that works.
+
+### The free tier sleeps
+
+Render's free tier stops an idle service and takes up to a minute to wake
+it. The first request after a quiet spell is slow; every request after it
+is not. The UI waits 60s and explains the delay after ten, so a cold start
+reads as "starting" rather than "broken" — but someone clicking during a
+demo still waits. Open the site once a few minutes beforehand.
+
 ## What is in the box
 
 | Path | What it does |
