@@ -5,6 +5,7 @@ import Ask from './pages/Ask.jsx';
 import Cases from './pages/Cases.jsx';
 import Review from './pages/Review.jsx';
 import { Leaf, Sun, Moon, Alert } from './components/Icons.jsx';
+import { api } from './lib/api.js';
 
 /* Demo-mode is app-wide state: once any call falls back to sample data the
    banner stays up, because a user who scrolled past it must not later read
@@ -31,6 +32,17 @@ export default function App() {
 
   useEffect(() => { window.scrollTo(0, 0); }, [pathname]);
 
+  /* Probe the API once on mount rather than waiting for a page to call it.
+     The landing page makes no requests, so without this someone can read
+     the whole of it, click through to Ask, and only discover there that
+     nothing has been talking to a backend. Knowing you are on sample data
+     is not a detail to find out late. */
+  useEffect(() => {
+    let cancelled = false;
+    api.corpus().then(r => { if (!cancelled && r.demo) setDemo(true); });
+    return () => { cancelled = true; };
+  }, []);
+
   return (
     <DemoCtx.Provider value={{ demo, setDemo }}>
       <div className="app">
@@ -39,8 +51,12 @@ export default function App() {
             <div className="shell">
               <Alert size={17} style={{ flexShrink: 0 }} />
               <span>
-                <strong>Sample data.</strong> The backend isn’t reachable, so this is illustrative
+                <strong>Sample data.</strong> The API isn’t reachable, so this is illustrative
                 content showing the shape of a real answer — not retrieved law, and not legal advice.
+                {' '}Start the backend with <code>./scripts/run.sh</code> in the{' '}
+                <code>IP_Shakti_Sahayak--SIH</code> checkout, then reload. Opening{' '}
+                <code>index.html</code> from your file manager always lands here: a{' '}
+                <code>file://</code> page has no server to call.
               </span>
             </div>
           </div>
