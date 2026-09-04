@@ -105,7 +105,7 @@ class QueryResponse(BaseModel):
     # separate correlation id scheme.
     audit_id: str | None = None
     # How answer_text was produced: "live" (a real model call), "mock" (no
-    # ANTHROPIC_API_KEY configured, so the prose is a deterministic canned
+    # GROQ_API_KEY configured, so the prose is a deterministic canned
     # stand-in — the citations, sources and compliance screening around it
     # are still real), or "none" (the system abstained, so no generation
     # ran at all). The UI must show this: canned prose passed off as a

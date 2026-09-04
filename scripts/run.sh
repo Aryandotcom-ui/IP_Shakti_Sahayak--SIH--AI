@@ -95,10 +95,10 @@ CHUNKS=$(curl -sf http://127.0.0.1:8000/api/v1/corpus \
          | "$PY" -c 'import json,sys; print(json.load(sys.stdin)["chunks"])' 2>/dev/null || echo 0)
 say "API is up — $CHUNKS chunks indexed"
 
-if [ -z "${ANTHROPIC_API_KEY:-}" ]; then
+if [ -z "${GROQ_API_KEY:-}" ]; then
   cat <<'NOTE'
 
-  Note: ANTHROPIC_API_KEY is not set, so the answer wording comes from a
+  Note: GROQ_API_KEY is not set, so the answer wording comes from a
   deterministic stand-in and the UI labels it "Canned prose - no API key".
   Retrieval, citations, deadlines and compliance screening are real either
   way. Export the key and restart to generate the wording for real.

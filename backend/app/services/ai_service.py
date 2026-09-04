@@ -228,12 +228,12 @@ class AIService:
                 # presented as a generated answer would be precisely the
                 # dishonesty this system exists to prevent, so the mode is
                 # reported in the response and the UI must surface it.
-                use_mock = not settings.anthropic_api_key
+                use_mock = not settings.groq_api_key
                 final = generate_answer(
                     retrieval,
                     model=settings.llm_model,
                     mock=use_mock,
-                    api_key=settings.anthropic_api_key,
+                    api_key=settings.groq_api_key,
                 )
                 generation_mode = "mock" if use_mock else "live"
 

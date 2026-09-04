@@ -37,10 +37,10 @@ Other options:
 
 ### Generated answer wording is off by default
 
-Set `ANTHROPIC_API_KEY` to have a model write the prose:
+Set `GROQ_API_KEY` to have a model write the prose:
 
 ```bash
-export ANTHROPIC_API_KEY=sk-ant-...
+export GROQ_API_KEY=gsk_...
 ./scripts/run.sh
 ```
 

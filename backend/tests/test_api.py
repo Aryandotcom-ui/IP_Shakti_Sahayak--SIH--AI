@@ -146,7 +146,7 @@ def test_abstain_threshold_is_configurable(monkeypatch):
     assert retrieval.should_abstain is False
 
 
-def test_configured_anthropic_key_is_forwarded_to_generation(monkeypatch):
+def test_configured_groq_key_is_forwarded_to_generation(monkeypatch):
     from app.services import ai_service as service_module
 
     captured = {}
@@ -170,7 +170,7 @@ def test_configured_anthropic_key_is_forwarded_to_generation(monkeypatch):
             return r, {"c1": {"source_url": "https://example.com"}}
 
     monkeypatch.setattr(service_module, "generate_answer", fake_generate_answer)
-    monkeypatch.setattr(service_module.settings, "anthropic_api_key", "test-key")
+    monkeypatch.setattr(service_module.settings, "groq_api_key", "test-key")
     result = FakeService().answer("test", None, 1)
 
     assert captured["api_key"] == "test-key"

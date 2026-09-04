@@ -18,3 +18,4 @@ __pycache__/
 # scripts/run.sh (npm install / vite build); never the source of truth.
 /frontend/node_modules/
 /frontend/dist/
+.env
