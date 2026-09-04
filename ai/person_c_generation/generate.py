@@ -19,9 +19,9 @@ Usage:
     python generate.py --query "..." --mock
 
 Environment:
-    ANTHROPIC_API_KEY   required unless --mock is used
-    LLM_MODEL           optional, defaults to a Sonnet alias — set to whatever
-                         model string your Anthropic account has access to
+    GROQ_API_KEY        required unless --mock is used
+    LLM_MODEL           optional, defaults to a Groq-hosted model — set to
+                         whatever model string your Groq account has access to
 """
 
 from __future__ import annotations
@@ -33,6 +33,9 @@ import re
 import sys
 from pathlib import Path
 from typing import Optional
+from dotenv import load_dotenv
+
+load_dotenv()
 
 # Make `shared/schema.py` importable regardless of cwd.
 _THIS_DIR = Path(__file__).resolve().parent
@@ -46,7 +49,10 @@ from shared.schema import (  # noqa: E402
     RetrievalResult,
 )
 
-DEFAULT_MODEL = os.environ.get("LLM_MODEL", "claude-sonnet-4-5")
+DEFAULT_MODEL = os.environ.get(
+    "LLM_MODEL",
+    "openai/gpt-oss-120b",
+)
 SYSTEM_PROMPT_PATH = _THIS_DIR / "prompts" / "system_prompt.txt"
 
 
@@ -130,42 +136,60 @@ class MockLLM:
         return json.dumps(payload)
 
 
-def call_llm(prompt: str, model: str = DEFAULT_MODEL, api_key: str | None = None) -> str:
+def call_llm(
+    prompt: str,
+    model: str = DEFAULT_MODEL,
+    api_key: str | None = None,
+) -> str:
     """
-    Calls the Anthropic Messages API with the fully-formatted prompt as the
-    user turn (the prompt already contains the system instructions, sources,
-    and question per the template in prompts/system_prompt.txt).
+    Call Groq's OpenAI-compatible chat completion API.
 
-    `api_key` lets a caller that already has one configured (the backend
-    adapter, from its own settings) pass it explicitly; the CLI's
-    documented `ANTHROPIC_API_KEY` environment variable is still the
-    fallback when it is not supplied, so `python generate.py` behaves
-    exactly as before.
+    The rest of the RAG pipeline remains provider-independent:
+    retrieval -> prompt -> LLM -> JSON parsing -> FinalAnswer.
     """
+
     try:
-        import anthropic  # type: ignore
+        from openai import OpenAI
     except ImportError as e:
         raise RuntimeError(
-            "The 'anthropic' package is required for real LLM calls. "
-            "Install it with: pip install anthropic --break-system-packages "
-            "(or run with --mock to skip the real API call)."
+            "The 'openai' package is required for Groq API calls. "
+            "Install it with: pip install openai"
         ) from e
 
-    api_key = api_key or os.environ.get("ANTHROPIC_API_KEY")
+    api_key = api_key or os.environ.get("GROQ_API_KEY")
+
     if not api_key:
         raise RuntimeError(
-            "ANTHROPIC_API_KEY is not set. Export it, pass api_key explicitly, "
-            "or run with --mock."
+            "GROQ_API_KEY is not set. "
+            "Add it to your .env file or pass api_key explicitly."
         )
 
-    client = anthropic.Anthropic(api_key=api_key)
-    response = client.messages.create(
-        model=model,
-        max_tokens=1024,
-        messages=[{"role": "user", "content": prompt}],
+    client = OpenAI(
+        api_key=api_key,
+        base_url="https://api.groq.com/openai/v1",
     )
-    text_parts = [block.text for block in response.content if block.type == "text"]
-    return "\n".join(text_parts)
+
+    response = client.chat.completions.create(
+        model=model,
+        messages=[
+            {
+                "role": "user",
+                "content": prompt,
+            }
+        ],
+        max_tokens=1024,
+        temperature=0,
+    )
+
+    if not response.choices:
+        raise RuntimeError("Groq returned an empty response.")
+
+    content = response.choices[0].message.content
+
+    if not content:
+        raise RuntimeError("Groq returned an empty message.")
+
+    return content
 
 
 # ---------------------------------------------------------------------------
@@ -211,7 +235,7 @@ def generate_answer(
     from the fixture file or from a live ChromaDB/SQLite-backed call.
 
     `api_key` is forwarded to call_llm() as-is (None falls back to the
-    ANTHROPIC_API_KEY environment variable there) — see its docstring.
+    GROQ_API_KEY environment variable there) — see its docstring.
     """
     template = load_prompt_template(prompt_template_path)
     prompt = build_prompt(template, retrieval_result)

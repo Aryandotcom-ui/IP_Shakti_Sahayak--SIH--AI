@@ -208,7 +208,7 @@ class AIService:
                     retrieval,
                     model=settings.llm_model,
                     mock=False,
-                    api_key=settings.anthropic_api_key,
+                    api_key=settings.groq_api_key,
                 )
 
             # Keep source metadata from retrieval for the UI. Generation uses
